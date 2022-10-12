@@ -35,7 +35,7 @@ public class OrderItem extends BaseEntity {
     private int salePrice; // 실제판매가
     private int wholesalePrice; // 도매가
     private int pgFee; // 결제대행사 수수료
-    private int payPrice; // 결제금액
+    private int SalePrice; // 결제금액
     private int refundPrice; // 환불금액
     private boolean isPaid; // 결제여부
 
@@ -48,12 +48,12 @@ public class OrderItem extends BaseEntity {
 
     public void setPaymentDone() {
         this.pgFee = 0;
-        this.payPrice = getSalePrice();
+        this.SalePrice = getSalePrice();
         this.isPaid = true;
         this.payDate = LocalDateTime.now();
     }
 
     public void setRefundDone() {
-        this.refundPrice = payPrice;
+        this.refundPrice = SalePrice;
     }
 }
