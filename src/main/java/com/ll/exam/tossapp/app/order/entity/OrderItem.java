@@ -32,7 +32,7 @@ public class OrderItem extends BaseEntity {
 
     // 가격
     private int price; // 권장판매가
-    private int salePrice; // 실제판매가
+    private int PayPrice; // 실제판매가
     private int wholesalePrice; // 도매가
     private int pgFee; // 결제대행사 수수료
     private int SalePrice; // 결제금액
@@ -42,13 +42,13 @@ public class OrderItem extends BaseEntity {
     public OrderItem(Product product) {
         this.product = product;
         this.price = product.getPrice();
-        this.salePrice = product.getSalePrice();
+        this.PayPrice = product.getSalePrice();
         this.wholesalePrice = product.getWholesalePrice();
     }
 
     public void setPaymentDone() {
         this.pgFee = 0;
-        this.SalePrice = getSalePrice();
+        this.SalePrice = getPayPrice();
         this.isPaid = true;
         this.payDate = LocalDateTime.now();
     }
