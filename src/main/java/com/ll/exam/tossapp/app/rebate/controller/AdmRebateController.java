@@ -1,6 +1,8 @@
 package com.ll.exam.tossapp.app.rebate.controller;
 
+import com.ll.exam.tossapp.app.rebate.service.RebateService;
 import com.ll.exam.tossapp.util.Ut;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +14,9 @@ import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping("/adm/rebate")
+@RequiredArgsConstructor
 public class AdmRebateController {
+    private final RebateService rebateService;
     @GetMapping("/makeData")
     @PreAuthorize("hasAuthority('ADMIN')")
     public String showMakeData() {
