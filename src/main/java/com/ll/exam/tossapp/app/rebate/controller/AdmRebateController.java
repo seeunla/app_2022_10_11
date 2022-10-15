@@ -25,15 +25,19 @@ public class AdmRebateController {
 
     @PostMapping("/makeData")
     @PreAuthorize("hasAuthority('ADMIN')")
-    @ResponseBody
     public String makeData(String yearMonth) {
-        int monthEndDay = Ut.date.getEndDayOf(yearMonth);
+        rebateService.makeDate(yearMonth);
 
-        String fromDateStr = yearMonth + "-01 00:00:00.000000";
-        String toDateStr = yearMonth + "-%2d 23:59:59.999999".formatted(monthEndDay);
-        LocalDateTime fromDate = Ut.date.parse(fromDateStr);
-        LocalDateTime toDate = Ut.date.parse(toDateStr);
+        return "redirect:/adm/rebate/rebateOrderItemList?yearMonth=" + yearMonth + "&msg=" + Ut.url.encode("정산데이터가 성공적으로 생성되었습니다.");
+    }
 
-        return "fromDateStr : %s<br>toDateStr : %s".formatted(fromDateStr, toDateStr);
+    @GetMapping("/rebateOrderItemList")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showRebateOrderItemList(String yearMonth) {
+        if (yearMonth == null) {
+            yearMonth = "2022-10";
+        }
+
+        return "admin/rebate/rebateOrderItemList";
     }
 }
