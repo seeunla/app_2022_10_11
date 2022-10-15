@@ -1,5 +1,8 @@
 package com.ll.exam.tossapp.app.rebate.service;
 
+import com.ll.exam.tossapp.app.base.dto.RsData;
+import com.ll.exam.tossapp.app.cash.entity.CashLog;
+import com.ll.exam.tossapp.app.member.service.MemberService;
 import com.ll.exam.tossapp.app.order.entity.OrderItem;
 import com.ll.exam.tossapp.app.order.service.OrderService;
 import com.ll.exam.tossapp.app.rebate.entity.RebateOrderItem;
@@ -7,18 +10,23 @@ import com.ll.exam.tossapp.app.rebate.repository.RebateOrderItemRepository;
 import com.ll.exam.tossapp.util.Ut;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class RebateService {
     private final OrderService orderService;
+    private final MemberService memberService;
     private final RebateOrderItemRepository rebateOrderItemRepository;
 
-    public void makeDate(String yearMonth) {
+    @Transactional
+    public RsData makeDate(String yearMonth) {
         int monthEndDay = Ut.date.getEndDayOf(yearMonth);
 
 
@@ -38,9 +46,12 @@ public class RebateService {
 
         // 저장하기
         rebateOrderItems.forEach(this::makeRebateOrderItem);
+
+        return RsData.of("S-1", "정산데이터가 성공적으로 생성되었습니다.");
     }
 
-    private void makeRebateOrderItem(RebateOrderItem item) {
+    @Transactional
+    public void makeRebateOrderItem(RebateOrderItem item) {
         RebateOrderItem oldRebateOrderItem = rebateOrderItemRepository.findByOrderItemId(item.getOrderItem().getId()).orElse(null);
 
         if (oldRebateOrderItem !=null) {
@@ -64,5 +75,32 @@ public class RebateService {
         LocalDateTime toDate = Ut.date.parse(toDateStr);
 
         return rebateOrderItemRepository.findAllByPayDateBetweenOrderByIdAsc(fromDate, toDate);
+    }
+
+    @Transactional
+    public RsData rebate(long orderItemId) {
+        RebateOrderItem rebateOrderItem = rebateOrderItemRepository.findByOrderItemId(orderItemId).get();
+
+        if (rebateOrderItem.isRebateAvailable() == false) {
+            return RsData.of("F-1", "정산을 할 수 없는 상태입니다.");
+        }
+
+        int calculateRebatePrice = rebateOrderItem.calculateRebatePrice();
+
+        CashLog cashLog = memberService.addCash(
+                rebateOrderItem.getProduct().getAuthor(),
+                calculateRebatePrice,
+                "정산__%d__지급__예치금".formatted(rebateOrderItem.getOrderItem().getId())
+        ).getData().getCashLog();
+
+        rebateOrderItem.setRebateDone(cashLog.getId());
+
+        return RsData.of(
+                "S-1",
+                "주문품목번호 %d번에 대해서 판매자에게 %s원 정산을 완료하였습니다.".formatted(rebateOrderItem.getOrderItem().getId(), calculateRebatePrice),
+                Ut.mapOf(
+                        "cashLogId", cashLog.getId()
+                )
+        );
     }
 }

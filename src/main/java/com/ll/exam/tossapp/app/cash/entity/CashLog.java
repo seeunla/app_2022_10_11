@@ -4,7 +4,6 @@ import com.ll.exam.tossapp.app.base.entity.BaseEntity;
 import com.ll.exam.tossapp.app.member.entity.Member;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
@@ -23,4 +22,8 @@ public class CashLog extends BaseEntity {
     private Member member;
     private long price; // 변동
     private String eventType;
+
+    public CashLog(long id) {
+        super(id);
+    }
 }

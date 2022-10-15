@@ -1,15 +1,20 @@
 package com.ll.exam.tossapp.app.member.service;
 
+import com.ll.exam.tossapp.app.base.dto.RsData;
 import com.ll.exam.tossapp.app.cash.entity.CashLog;
 import com.ll.exam.tossapp.app.cash.service.CashService;
 import com.ll.exam.tossapp.app.member.entity.Member;
 import com.ll.exam.tossapp.app.member.exception.AlreadyJoinException;
 import com.ll.exam.tossapp.app.member.repository.MemberRepository;
+import com.ll.exam.tossapp.util.Ut;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -42,14 +47,25 @@ public class MemberService {
     }
 
     @Transactional
-    public long addCash(Member member, long price, String eventType) {
+    public RsData<AddCashRsDataBody> addCash(Member member, long price, String eventType) {
         CashLog cashLog = cashService.addCash(member, price, eventType);
 
         long newRestCash = member.getRestCash() + cashLog.getPrice();
         member.setRestCash(newRestCash);
         memberRepository.save(member);
 
-        return newRestCash;
+        return RsData.of(
+                "S-1",
+                "성공",
+                new AddCashRsDataBody(cashLog, newRestCash)
+        );
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class AddCashRsDataBody {
+        CashLog cashLog;
+        long newRestCash;
     }
 
     public long getRestCash(Member member) {
